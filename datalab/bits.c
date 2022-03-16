@@ -241,13 +241,9 @@ int negate(int x) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
-  printf("x: %d\n", x);
-  int lower = ~((x + (~0x29)) >> 31) + 1;
-  printf("lower: %d\n", lower);
-  int upper = ~((x + (~0x39)) >> 31) + 1;
-  printf("upper: %d\n", upper);
-  printf("return: %d\n", (~lower & upper));
-  return (~lower & upper);
+  int lower = (x + (~0x2f)) >> 31; 
+  int upper = (x + (~0x39)) >> 31;
+  return ~(~lower & upper) + 1;
 }
 /* 
  * conditional - same as x ? y : z 
@@ -257,7 +253,10 @@ int isAsciiDigit(int x) {
  *   Rating: 3
  */
 int conditional(int x, int y, int z) {
-  return 2;
+  int mapping = !x;
+  int result = ((mapping ^ 0) & y) | ((mapping ^ 0) & z); 
+
+  return result;
 }
 /* 
  * isLessOrEqual - if x <= y  then return 1, else return 0 
