@@ -178,7 +178,12 @@ NOTES:
  *   Rating: 1
  */
 int bitXor(int x, int y) {
-  return 2;
+  int notx = ~x;
+  int noty = ~y;
+  int part1 = notx & y;
+  int part2 = noty & x;
+  int result = (~part1) & (~part2);
+  return ~result;
 }
 /* 
  * tmin - return minimum two's complement integer 
@@ -187,7 +192,8 @@ int bitXor(int x, int y) {
  *   Rating: 1
  */
 int tmin(void) {
-  return 2;
+  int result = 1 << 31;
+  return result;
 }
 //2
 /*
@@ -198,8 +204,12 @@ int tmin(void) {
  *   Rating: 1
  */
 int isTmax(int x) {
-  return 2;
+  int add = x + 1;
+  int or = add | x;
+  int result = or + 1;
+  return !result;
 }
+
 /* 
  * allOddBits - return 1 if all odd-numbered bits in word set to 1
  *   where bits are numbered from 0 (least significant) to 31 (most significant)
@@ -209,7 +219,12 @@ int isTmax(int x) {
  *   Rating: 2
  */
 int allOddBits(int x) {
-  return 2;
+  int allOdd = (0xAA << 24) | (0xAA << 16) | (0xAA << 8) | 0xAA;
+  int allEven = ~allOdd;
+  int mapAllOdd = x & allOdd;
+  int addAllEven = mapAllOdd + allEven;
+  int result = addAllEven + 1;
+  return !result;
 }
 /* 
  * negate - return -x 
