@@ -178,12 +178,13 @@ NOTES:
  *   Rating: 1
  */
 int bitXor(int x, int y) {
-  int notx = ~x;
-  int noty = ~y;
-  int part1 = notx & y;
-  int part2 = noty & x;
+  /*
+  int part1 = ~x & y;
+  int part2 = ~y & x;
   int result = (~part1) & (~part2);
   return ~result;
+  */
+  return ~((~(~x & y)) & (~(~y & x)));
 }
 /* 
  * tmin - return minimum two's complement integer 
@@ -192,8 +193,7 @@ int bitXor(int x, int y) {
  *   Rating: 1
  */
 int tmin(void) {
-  int result = 1 << 31;
-  return result;
+  return 1 << 31;
 }
 //2
 /*
@@ -204,10 +204,8 @@ int tmin(void) {
  *   Rating: 1
  */
 int isTmax(int x) {
-  int add = x + 1;
-  int or = add | x;
-  int result = or + 1;
-  return !result;
+  int isNegative1 = !(~x);
+  return !(~(x+1+x) | isNegative1);
 }
 
 /* 
@@ -220,11 +218,7 @@ int isTmax(int x) {
  */
 int allOddBits(int x) {
   int allOdd = (0xAA << 24) | (0xAA << 16) | (0xAA << 8) | 0xAA;
-  int allEven = ~allOdd;
-  int mapAllOdd = x & allOdd;
-  int addAllEven = mapAllOdd + allEven;
-  int result = addAllEven + 1;
-  return !result;
+  return !((x & allOdd) + (~allOdd) + 1);
 }
 /* 
  * negate - return -x 
@@ -234,7 +228,7 @@ int allOddBits(int x) {
  *   Rating: 2
  */
 int negate(int x) {
-  return 2;
+  return ~x + 1;
 }
 //3
 /* 
@@ -247,7 +241,13 @@ int negate(int x) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
-  return 2;
+  printf("x: %d\n", x);
+  int lower = ~((x + (~0x29)) >> 31) + 1;
+  printf("lower: %d\n", lower);
+  int upper = ~((x + (~0x39)) >> 31) + 1;
+  printf("upper: %d\n", upper);
+  printf("return: %d\n", (~lower & upper));
+  return (~lower & upper);
 }
 /* 
  * conditional - same as x ? y : z 
