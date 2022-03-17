@@ -253,8 +253,9 @@ int isAsciiDigit(int x) {
  *   Rating: 3
  */
 int conditional(int x, int y, int z) {
-  int mapping = !x;
-  int result = ((mapping ^ 0) & y) | ((mapping ^ 0) & z); 
+  int logic = !!x;
+  int mapping = ~logic + 1;
+  int result = (mapping & y) | (~mapping & z); 
 
   return result;
 }
@@ -266,7 +267,13 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isLessOrEqual(int x, int y) {
-  return 2;
+  int sign = (!(x >> 31)) ^ (!(y >> 31));
+  int xNeg = sign & (x >> 31);
+
+  int difference = (~x + 1) + y;  // = -x + y, we want it to positive
+  int sameSign = (!sign) & !(difference >> 31);
+
+  return xNeg | sameSign;
 }
 //4
 /* 
@@ -278,7 +285,9 @@ int isLessOrEqual(int x, int y) {
  *   Rating: 4 
  */
 int logicalNeg(int x) {
-  return 2;
+  int inverseComplementSign = ((~x) & (~(~x + 1))) >> 31; //only 0 would return 1, the rest would return 0;]
+
+  return inverseComplementSign & 1;
 }
 /* howManyBits - return the minimum number of bits required to represent x in
  *             two's complement
