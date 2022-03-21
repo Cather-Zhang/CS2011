@@ -317,7 +317,23 @@ int howManyBits(int x) {
  *   Rating: 4
  */
 unsigned floatScale2(unsigned uf) {
-  return 2;
+  int sign = uf & 0x80000000;
+  int exp = uf & 0x7f800000;
+  int ment = uf & 0x007fffff;
+  
+  if (exp == 0) { 
+    return sign | ment << 1;
+  }
+  if (exp == 0x7f800000) { // inf or NaN
+    return uf;
+  }
+
+  exp += 0x0800000; // add 1 to exp, equivlent to *2
+  if (exp == 0x7f800000) {
+    // inf
+    ment = 0;
+  }
+  return sign | exp | ment;
 }
 /* 
  * floatFloat2Int - Return bit-level equivalent of expression (int) f
@@ -347,5 +363,11 @@ int floatFloat2Int(unsigned uf) {
  *   Rating: 2
  */
 unsigned floatNegate(unsigned uf) {
- return 2;
+  unsigned expo = (uf >> 23) & 0xFF;  
+  // unsigned fracc = uf & ~(~0 <<23);
+  unsigned fracc = uf << 9;
+  if(expo == 0xFF && fracc != 0x00){
+    return uf;
+  }
+  return uf ^ (1<<31);
 }
