@@ -302,7 +302,29 @@ int logicalNeg(int x) {
  *  Rating: 4
  */
 int howManyBits(int x) {
-  return 0;
+  /*
+  x = x ^ (x >> 31);
+  int bit16 = (!!(x >> 16)) << 4;
+  x = x >> bit16;
+  int bit8 = (!!(x >> 8)) << 3;
+  x = x >> bit8;
+  int bit4 = (!!(x >> 4)) << 2;
+  x = x >> bit4;
+  int bit2 = (!!(x >> 2)) << 1;
+  x = x >> bit2;
+  int bit1 = !!(x>>1);
+  x = x >> bit1;
+  return bit16 + bit8 + bit4 + bit2 + bit1 + x + 1;
+  */
+    int n = 0;
+    x = x ^ (x >> 31);
+    n = n + ((!!(x >> (n + 16))) << 4);
+    n = n + ((!!(x >> (n + 8))) << 3);
+    n = n + ((!!(x >> (n + 4))) << 2);
+    n = n + ((!!(x >> (n + 2))) << 1);
+    n = n + ((!!(x >> (n + 1))));
+    n = n + (x >> n);
+    return n + 1;
 }
 //float
 /* 
