@@ -1,7 +1,7 @@
 /* 
  * CS:APP Data Lab 
  * 
- * <Please put your name and userid here>
+ * Baohui (Cather) Zhang czhang10
  * 
  * bits.c - Source file with your solutions to the Lab.
  *          This is the file you will hand in to your instructor.
@@ -179,12 +179,13 @@ NOTES:
  */
 int bitXor(int x, int y) {
   /*
+    flipping x and y, checking if they match y and x
+  */
   int part1 = ~x & y;
   int part2 = ~y & x;
   int result = (~part1) & (~part2);
   return ~result;
-  */
-  return ~((~(~x & y)) & (~(~y & x)));
+
 }
 /* 
  * tmin - return minimum two's complement integer 
@@ -193,6 +194,7 @@ int bitXor(int x, int y) {
  *   Rating: 1
  */
 int tmin(void) {
+  //0x80000000
   return 1 << 31;
 }
 //2
@@ -204,8 +206,11 @@ int tmin(void) {
  *   Rating: 1
  */
 int isTmax(int x) {
-  int isNegative1 = !(~x);
-  return !(~(x+1+x) | isNegative1);
+  int isNegative1 = !(~x); //0xffffffff (-1) would give us 1, rest 0
+  // if it's max, adding 1 would become 0x80000000, adding x would be 0xffffffff
+  // ~that would give us 0
+  //only when it is not -1, and the previous operation is 0, it is tmax
+  return !(~(x+1+x) | isNegative1); 
 }
 
 /* 
@@ -217,8 +222,9 @@ int isTmax(int x) {
  *   Rating: 2
  */
 int allOddBits(int x) {
-  int allOdd = (0xAA << 24) | (0xAA << 16) | (0xAA << 8) | 0xAA;
-  return !((x & allOdd) + (~allOdd) + 1);
+  int allOdd = (0xAA << 24) | (0xAA << 16) | (0xAA << 8) | 0xAA; //0xAAAAAAAA
+  //all odd + all even + 1 should overflow and becomes 0;
+  return !((x & allOdd) + (~allOdd) + 1); 
 }
 /* 
  * negate - return -x 
@@ -228,6 +234,7 @@ int allOddBits(int x) {
  *   Rating: 2
  */
 int negate(int x) {
+  //2's complement, flip x and add 1
   return ~x + 1;
 }
 //3
@@ -241,8 +248,8 @@ int negate(int x) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
-  int lower = (x + (~0x2f)) >> 31; 
-  int upper = (x + (~0x39)) >> 31;
+  int lower = (x + (~0x2f)) >> 31; //lower bound should be 1
+  int upper = (x + (~0x39)) >> 31; //upper bound should be 0
   return ~(~lower & upper) + 1;
 }
 /* 
@@ -253,11 +260,9 @@ int isAsciiDigit(int x) {
  *   Rating: 3
  */
 int conditional(int x, int y, int z) {
-  int logic = !!x;
-  int mapping = ~logic + 1;
-  int result = (mapping & y) | (~mapping & z); 
-
-  return result;
+  int logic = !!x; //change x into 0 or 1
+  int mapping = ~logic + 1; //if 0, mapping = 0; if 1, mapping = 0xffffffff
+  return (mapping & y) | (~mapping & z); 
 }
 /* 
  * isLessOrEqual - if x <= y  then return 1, else return 0 
@@ -267,8 +272,8 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isLessOrEqual(int x, int y) {
-  int sign = (!(x >> 31)) ^ (!(y >> 31));
-  int xNeg = sign & (x >> 31);
+  int sign = (!(x >> 31)) ^ (!(y >> 31)); //if x and y have different sign
+  int xNeg = sign & (x >> 31); //if x is negative
 
   int difference = (~x + 1) + y;  // = -x + y, we want it to positive
   int sameSign = (!sign) & !(difference >> 31);
@@ -285,8 +290,8 @@ int isLessOrEqual(int x, int y) {
  *   Rating: 4 
  */
 int logicalNeg(int x) {
-  int inverseComplementSign = ((~x) & (~(~x + 1))) >> 31; //only 0 would return 1, the rest would return 0;]
-
+  int inverseComplementSign = ((~x) & (~(~x + 1))) >> 31; 
+  //only 0 would return 1, the rest would return 0;
   return inverseComplementSign & 1;
 }
 /* howManyBits - return the minimum number of bits required to represent x in
@@ -303,6 +308,9 @@ int logicalNeg(int x) {
  */
 int howManyBits(int x) {
   /*
+  This code passes btest but not dlc because declaration is mixed in
+  Using binary search to find the most significant bit
+  Need to add 1 to the final answer for sign
   x = x ^ (x >> 31);
   int bit16 = (!!(x >> 16)) << 4;
   x = x >> bit16;
@@ -316,15 +324,15 @@ int howManyBits(int x) {
   x = x >> bit1;
   return bit16 + bit8 + bit4 + bit2 + bit1 + x + 1;
   */
-    int n = 0;
-    x = x ^ (x >> 31);
-    n = n + ((!!(x >> (n + 16))) << 4);
-    n = n + ((!!(x >> (n + 8))) << 3);
-    n = n + ((!!(x >> (n + 4))) << 2);
-    n = n + ((!!(x >> (n + 2))) << 1);
-    n = n + ((!!(x >> (n + 1))));
-    n = n + (x >> n);
-    return n + 1;
+    int bit = 0;
+    x = x ^ (x >> 31); //flipping x to positive (if negative)
+    bit = bit + ((!!(x >> (bit + 16))) << 4);
+    bit += ((!!(x >> (bit + 8))) << 3);
+    bit += ((!!(x >> (bit + 4))) << 2);
+    bit += ((!!(x >> (bit + 2))) << 1);
+    bit += ((!!(x >> (bit + 1))));
+    bit += (x >> bit);
+    return bit + 1;
 }
 //float
 /* 
@@ -339,20 +347,20 @@ int howManyBits(int x) {
  *   Rating: 4
  */
 unsigned floatScale2(unsigned uf) {
-  int sign = uf & 0x80000000;
-  int exp = uf & 0x7f800000;
-  int ment = uf & 0x007fffff;
+  int sign = uf & 0x80000000; //sign to float
+  int exp = uf & 0x7f800000; //exponent of float
+  int ment = uf & 0x007fffff; //mentissa of float
   
   if (exp == 0) { 
     return sign | ment << 1;
   }
-  if (exp == 0x7f800000) { // inf or NaN
+  if (exp == 0x7f800000) { // infinity or NaN, return number
     return uf;
   }
 
   exp += 0x0800000; // add 1 to exp, equivlent to *2
   if (exp == 0x7f800000) {
-    // inf
+    // infinity
     ment = 0;
   }
   return sign | exp | ment;
@@ -385,10 +393,10 @@ int floatFloat2Int(unsigned uf) {
  *   Rating: 2
  */
 unsigned floatNegate(unsigned uf) {
-  unsigned expo = (uf >> 23) & 0xFF;  
-  // unsigned fracc = uf & ~(~0 <<23);
-  unsigned fracc = uf << 9;
-  if(expo == 0xFF && fracc != 0x00){
+  unsigned exp = (uf >> 23) & 0xFF;  
+
+  unsigned ment = uf << 9;
+  if(exp == 0xFF && ment != 0x00){
     return uf;
   }
   return uf ^ (1<<31);
