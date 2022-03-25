@@ -307,32 +307,23 @@ int logicalNeg(int x) {
  *  Rating: 4
  */
 int howManyBits(int x) {
-  /*
-  This code passes btest but not dlc because declaration is mixed in
-  Using binary search to find the most significant bit
-  Need to add 1 to the final answer for sign
+  
+  //Using binary search to find the most significant bit
+  //Need to add 1 to the final answer for sign
+  int bit16, bit8, bit4, bit2, bit1;
   x = x ^ (x >> 31);
-  int bit16 = (!!(x >> 16)) << 4;
+  bit16 = (!!(x >> 16)) << 4;
   x = x >> bit16;
-  int bit8 = (!!(x >> 8)) << 3;
+  bit8 = (!!(x >> 8)) << 3;
   x = x >> bit8;
-  int bit4 = (!!(x >> 4)) << 2;
+  bit4 = (!!(x >> 4)) << 2;
   x = x >> bit4;
-  int bit2 = (!!(x >> 2)) << 1;
+  bit2 = (!!(x >> 2)) << 1;
   x = x >> bit2;
-  int bit1 = !!(x>>1);
+  bit1 = !!(x>>1);
   x = x >> bit1;
   return bit16 + bit8 + bit4 + bit2 + bit1 + x + 1;
-  */
-    int bit = 0;
-    x = x ^ (x >> 31); //flipping x to positive (if negative)
-    bit = bit + ((!!(x >> (bit + 16))) << 4);
-    bit += ((!!(x >> (bit + 8))) << 3);
-    bit += ((!!(x >> (bit + 4))) << 2);
-    bit += ((!!(x >> (bit + 2))) << 1);
-    bit += ((!!(x >> (bit + 1))));
-    bit += (x >> bit);
-    return bit + 1;
+  
 }
 //float
 /* 
@@ -347,23 +338,44 @@ int howManyBits(int x) {
  *   Rating: 4
  */
 unsigned floatScale2(unsigned uf) {
+  /* lab solution:
+    unsigned sign = uf >> 31;
+    unsigned exp = (uf >> 23) & 0xff;
+    unsigned mantissa = uf & 0x7fffff;
+
+    if (exp == 0) {
+      mantissa *= 2;
+      if (mantissa > 0x7fffff) {
+        exp++;
+        mentissa &= 0x7fffff;
+      }
+    }
+    else if (exp < 0xff) {
+      exp++;
+      if (exp == 0xff) {
+        mantissa = 0;
+      }
+    }
+    return (sign << 31) | (exp << 23) | mantissa;
+  */
+
   int sign = uf & 0x80000000; //sign to float
   int exp = uf & 0x7f800000; //exponent of float
-  int ment = uf & 0x007fffff; //mentissa of float
+  int mant = uf & 0x007fffff; //mantissa of float
   
   if (exp == 0) { 
-    return sign | ment << 1;
+    return sign | mant << 1; // if denormalized number, we shift mantissa by one position instead, keep exp as 0
   }
   if (exp == 0x7f800000) { // infinity or NaN, return number
     return uf;
   }
 
-  exp += 0x0800000; // add 1 to exp, equivlent to *2
+  exp += 0x00800000; // normalized number - add 1 to exp, equivlent to *2
   if (exp == 0x7f800000) {
-    // infinity
-    ment = 0;
+    // if exponent is too many, we clear mantissa so it is infinity now
+    mant = 0;
   }
-  return sign | exp | ment;
+  return sign | exp | mant;
 }
 /* 
  * floatFloat2Int - Return bit-level equivalent of expression (int) f
@@ -378,7 +390,26 @@ unsigned floatScale2(unsigned uf) {
  *   Rating: 4
  */
 int floatFloat2Int(unsigned uf) {
-  return 2;
+  
+  int sign = uf >> 31; // sign
+  int exp = ((uf & 0x7f800000) >> 23) - 127; // exponent 
+  int mantissa = (uf & 0xfffff) | (1 << 23); // mentissa, add 1 to front
+  int result = 0;
+
+  if (exp < 0) return 0; // decimals will round to 0 for int
+  else if (exp >= 31) return 0x80000000; // out of range number, return 0x80000000
+  else {
+    if (exp < 23) {
+      result = mantissa >> (23 - exp); // Since mantissa is 1.xxx(23 bits), we shift backwards if exponent is less than 23. 
+    }
+    else {
+    result = mantissa << (exp - 23); // if exponent is more than 23 we need to add more 0s to the end
+   }
+  }
+  if (sign) result = ~result + 1; // check sign
+  return result;
+  
+
 }
 /* #include "floatPower2.c" commented by Weinstock request by MCV 20210929-1619 */
 /* 
@@ -393,11 +424,12 @@ int floatFloat2Int(unsigned uf) {
  *   Rating: 2
  */
 unsigned floatNegate(unsigned uf) {
-  unsigned exp = (uf >> 23) & 0xFF;  
-
-  unsigned ment = uf << 9;
-  if(exp == 0xFF && ment != 0x00){
-    return uf;
+  //first we need to check if it is normalized or not
+  unsigned exp = (uf >> 23) & 0xFF;  // exponent of float
+  unsigned mant = uf << 9; // mantissa of float
+  if(exp == 0xFF && mant != 0x00){
+    return uf; // if NaN, we return the number itself
   }
-  return uf ^ (1<<31);
+  //if the float is normalized, we just xor the sign bit
+  return uf ^ (1<<31); 
 }
